@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Word Garden: Sibling Bloom</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Comfortaa:wght@300;400;600&family=Fredoka+One:wght@400&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Comfortaa', cursive;
+            background: linear-gradient(135deg, #ffeef8, #e8f4fd, #f0f8e8, #fdf2e8);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Particles and Weather Effects */
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            animation: float 8s infinite linear;
+            opacity: 0.7;
+        }
+        
+        .petal-particle {
+            width: 8px;
+            height: 12px;
+            border-radius: 50% 10px 50% 10px;
+            background: linear-gradient(45deg, #ffb6c1, #ffc0cb);
+        }
+        
+        .pollen-particle {
+            width: 4px;
+            height: 4px;
+            background: #ffd700;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% { opacity: 0.7; }
+            90% { opacity: 0.7; }
+            100% {
+                transform: translateY(-10vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        /* Main Container */
+        .game-container {
+            position: relative;
+            z-index: 2;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        
+        /* Header */
+        .game-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        .game-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 700;
+            background: linear-gradient(45deg, #ff6b9d, #4ecdc4, #45b7d1, #96ceb4);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease infinite;
+            margin-bottom: 0.5rem;
+        }
+        
+        .game-subtitle {
+            font-size: 1.2rem;
+            color: #7b68ee;
+            margin-bottom: 1rem;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            max-width: 400px;
+            height: 20px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            margin: 0 auto;
+            overflow: hidden;
+            border: 2px solid #fff;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b9d, #4ecdc4);
+            width: 0%;
+            transition: width 0.8s ease;
+            border-radius: 10px;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Game Area */
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Garden Side */
+        .garden-side {
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
+            border-radius: 20px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .garden-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .flower-slot {
+            aspect-ratio: 1;
+            background: rgba(255,255,255,0.5);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 2px dashed #ccc;
+            transition: all 0.5s ease;
+        }
+        
+        .flower-slot.bloomed {
+            border: 2px solid #4ecdc4;
+            background: rgba(76, 205, 196, 0.1);
+        }
+        
+        .flower {
+            position: relative;
+            width: 80px;
+            height: 100px;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .flower.bloomed {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .flower-bloom {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 10px;
+        }
+        
+        .petal {
+            position: absolute;
+            width: 20px;
+            height: 30px;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            top: 50%;
+            left: 50%;
+            transform-origin: center bottom;
+            animation: petalGlow 2s ease-in-out infinite alternate;
+        }
+        
+        .petal:nth-child(1) { transform: translate(-50%, -50%) rotate(0deg); }
+        .petal:nth-child(2) { transform: translate(-50%, -50%) rotate(60deg); }
+        .petal:nth-child(3) { transform: translate(-50%, -50%) rotate(120deg); }
+        .petal:nth-child(4) { transform: translate(-50%, -50%) rotate(180deg); }
+        .petal:nth-child(5) { transform: translate(-50%, -50%) rotate(240deg); }
+        .petal:nth-child(6) { transform: translate(-50%, -50%) rotate(300deg); }
+        
+        @keyframes petalGlow {
+            0% { filter: brightness(1); }
+            100% { filter: brightness(1.2); }
+        }
+        
+        .flower-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #ffd700, #ffb347);
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+        
+        .flower-stem {
+            width: 4px;
+            height: 40px;
+            background: linear-gradient(to bottom, #90ee90, #228b22);
+            border-radius: 2px;
+            margin: 0 auto;
+        }
+        
+        .flower-name {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Dancing Script', cursive;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.5s ease 0.5s;
+        }
+        
+        .flower.bloomed .flower-name {
+            opacity: 1;
+        }
+        
+        /* Game Side */
+        .game-side {
+            background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.2));
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .mini-game {
+            display: none;
+            text-align: center;
+        }
+        
+        .mini-game.active {
+            display: block;
+            animation: fadeInUp 0.5s ease;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .mini-game h2 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.8rem;
+            color: #4a4a4a;
+            margin-bottom: 1rem;
+        }
+        
+        .mini-game p {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+        
+        /* Color Matching Game */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .color-shape {
+            width: 80px;
+            height: 80px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        
+        .color-shape:hover {
+            transform: scale(1.1);
+        }
+        
+        .color-shape.faded {
+            filter: grayscale(100%) brightness(0.5);
+        }
+        
+        .color-shape.restored {
+            filter: none;
+            border-color: #4ecdc4;
+            animation: colorRestore 0.5s ease;
+        }
+        
+        @keyframes colorRestore {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Anaya's Study Matching Game */
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .memory-card {
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(135deg, #4ecdc4, #45b7d1);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: white;
+            font-weight: bold;
+            perspective: 1000px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+        }
+        
+        .memory-card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .memory-card.matched {
+            background: linear-gradient(135deg, #96ceb4, #4ecdc4);
+            box-shadow: 0 0 15px rgba(76, 205, 196, 0.5);
+            cursor: default;
+        }
+        
+        .memory-card-front, .memory-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .memory-card-front {
+            background: linear-gradient(135deg, #4ecdc4, #45b7d1);
+            transform: rotateY(180deg);
+        }
+        
+        .memory-card-back {
+            background: linear-gradient(135deg, #7b68ee, #6a5acd);
+            font-size: 2rem;
+        }
+        
+        /* Drag and Drop Game */
+        .drop-zones {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 2rem;
+        }
+        
+        .drop-zone {
+            width: 100px;
+            height: 100px;
+            border: 3px dashed #ccc;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .drop-zone.drag-over {
+            border-color: #4ecdc4;
+            background: rgba(76, 205, 196, 0.1);
+        }
+        
+        .draggable-shapes {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 2rem;
+        }
+        
+        .draggable {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            cursor: grab;
+            transition: all 0.3s ease;
+        }
+        
+        .draggable:active {
+            cursor: grabbing;
+        }
+        
+        /* Armish's Simple Click Game */
+        .click-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .click-button {
+            width: 120px;
+            height: 120px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 3rem;
+            transition: all 0.3s ease;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .click-button:hover {
+            transform: scale(1.1);
+        }
+        
+        .click-button.clicked {
+            animation: buttonSuccess 0.5s ease;
+            opacity: 0.5;
+            cursor: default;
+        }
+        
+        @keyframes buttonSuccess {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); filter: brightness(1.5); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Minahil's Simple Collect Game */
+        .collect-area {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #e8f4fd, #f0f8e8);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid #4ecdc4;
+            margin-bottom: 1rem;
+        }
+        
+        .floating-petal {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(45deg, #ffb6c1, #ffc0cb);
+            border-radius: 50% 10px 50% 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: gentleFloat 3s ease-in-out infinite;
+        }
+        
+        .floating-petal:hover {
+            transform: scale(1.2);
+        }
+        
+        .floating-petal.collected {
+            animation: collectAnimation 0.5s ease forwards;
+        }
+        
+        @keyframes gentleFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes collectAnimation {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2) rotate(360deg); opacity: 0; }
+        }
+        
+        /* Zohan's Simple Tap Game */
+        .tap-area {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(135deg, #ffeef8, #f8e8ff);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid #7b68ee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tap-area:hover {
+            background: linear-gradient(135deg, #f0e8ff, #e8d8ff);
+        }
+        
+        .tap-target {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #7b68ee, #9370db);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+            animation: pulseTarget 2s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(123, 104, 238, 0.5);
+        }
+        
+        @keyframes pulseTarget {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .tap-target.tapped {
+            animation: tapSuccess 0.5s ease;
+        }
+        
+        @keyframes tapSuccess {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); filter: brightness(1.5); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Buttons */
+        .game-button {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-family: 'Comfortaa', cursive;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(68, 160, 141, 0.3);
+        }
+        
+        .game-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(68, 160, 141, 0.4);
+        }
+        
+        .game-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Story Display */
+        .story-display {
+            display: none;
+            background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.8));
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 2rem;
+            border: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+        
+        .story-display.show {
+            display: block;
+            animation: fadeInUp 0.8s ease;
+        }
+        
+        .story-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #4a4a4a;
+            margin-bottom: 1rem;
+        }
+        
+        .typed-text {
+            border-right: 2px solid #4ecdc4;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { border-color: transparent; }
+            51%, 100% { border-color: #4ecdc4; }
+        }
+        
+        /* Final Reveal */
+        .final-reveal {
+            display: none;
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
+            border-radius: 25px;
+            margin-top: 2rem;
+            border: 2px solid rgba(255,255,255,0.5);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(15px);
+        }
+        
+        .final-reveal.show {
+            display: block;
+            animation: finalRevealAnimation 1.5s ease;
+        }
+        
+        @keyframes finalRevealAnimation {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) rotateY(90deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotateY(0deg);
+            }
+        }
+        
+        .sibling-names {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .sibling-name {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2rem;
+            font-weight: 700;
+            padding: 0.5rem 1rem;
+            border-radius: 15px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            animation: nameSparkle 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes nameSparkle {
+            0% { transform: scale(1); filter: brightness(1); }
+            100% { transform: scale(1.05); filter: brightness(1.2); }
+        }
+        
+        /* Audio Controls */
+        .audio-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        
+        .audio-button {
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .audio-button:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .garden-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .color-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .memory-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .click-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .sibling-names {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Audio Controls -->
+    <div class="audio-controls">
+        <button class="audio-button" id="audioToggle" title="Toggle Music">🔊</button>
+    </div>
+    
+    <!-- Particles Container -->
+    <div class="particles-container" id="particlesContainer"></div>
+    
+    <!-- Main Game Container -->
+    <div class="game-container">
+        <!-- Header -->
+        <div class="game-header">
+            <h1 class="game-title">Magic Word Garden</h1>
+            <p class="game-subtitle">Sibling Bloom Adventure</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        
+        <!-- Game Area -->
+        <div class="game-area">
+            <!-- Garden Side -->
+            <div class="garden-side">
+                <h3 style="text-align: center; color: #4a4a4a; margin-bottom: 1rem;">🌸 Your Magical Garden 🌸</h3>
+                <div class="garden-grid" id="gardenGrid">
+                    <!-- Flower slots will be generated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Game Side -->
+            <div class="game-side">
+                <!-- Haram's Color Matching Game -->
+                <div class="mini-game active" id="game-haram">
+                    <h2>🌈 Haram's Healing Colors</h2>
+                    <p>Help Haram restore the faded shapes by clicking them in the right order!</p>
+                    <div class="color-grid" id="colorGrid">
+                        <!-- Color shapes will be generated -->
+                    </div>
+                    <button class="game-button" id="resetColors">Reset Colors</button>
+                </div>
+                
+                <!-- Anaya's Study Matching Game -->
+                <div class="mini-game" id="game-anaya">
+                    <h2>📚 Anaya's Study Match</h2>
+                    <p>Match the study cards to find pairs! Click on any card to reveal what's underneath.</p>
+                    <div class="memory-grid" id="memoryGrid">
+                        <!-- Memory cards will be generated -->
+                    </div>
+                    <button class="game-button" id="resetMemory">New Cards</button>
+                </div>
+                
+                <!-- Eman's Earth Shaping -->
+                <div class="mini-game" id="game-eman">
+                    <h2>🌍 Eman's Earth Shaping</h2>
+                    <p>Drag the earth shapes to their matching homes!</p>
+                    <div class="drop-zones" id="dropZones">
+                        <!-- Drop zones will be generated -->
+                    </div>
+                    <div class="draggable-shapes" id="draggableShapes">
+                        <!-- Draggable shapes will be generated -->
+                    </div>
+                </div>
+                
+                <!-- Armish's Simple Click Game (REPLACED) -->
+                <div class="mini-game" id="game-armish">
+                    <h2>⚡ Armish's Quick Clicks</h2>
+                    <p>Click all the colorful buttons as fast as you can! Each click makes them sparkle!</p>
+                    <div class="click-buttons" id="clickButtons">
+                        <!-- Click buttons will be generated -->
+                    </div>
+                    <button class="game-button" id="resetClicks">New Buttons</button>
+                </div>
+                
+                <!-- Minahil's Simple Collect Game (REPLACED) -->
+                <div class="mini-game" id="game-minahil">
+                    <h2>🌸 Minahil's Petal Collection</h2>
+                    <p>Click on all the floating petals to collect them! They're gently dancing in the breeze.</p>
+                    <div class="collect-area" id="collectArea">
+                        <!-- Floating petals will be generated -->
+                    </div>
+                    <p>Petals Collected: <span id="petalsCollected">0</span>/5</p>
+                    <button class="game-button" id="resetPetals">New Petals</button>
+                </div>
+                
+                <!-- Zohan's Simple Tap Game (REPLACED) -->
+                <div class="mini-game" id="game-zohan">
+                    <h2>🛡️ Zohan's Magic Shield</h2>
+                    <p>Tap the glowing shield 5 times to charge it with protective magic!</p>
+                    <div class="tap-area" id="tapArea">
+                        <div class="tap-target" id="tapTarget">🛡️</div>
+                    </div>
+                    <p>Shield Charges: <span id="shieldCharges">0</span>/5</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Story Display -->
+        <div class="story-display" id="storyDisplay">
+            <div class="story-text" id="storyText"></div>
+            <button class="game-button" id="continueButton">Continue Adventure</button>
+        </div>
+        
+        <!-- Final Reveal -->
+        <div class="final-reveal" id="finalReveal">
+            <h2 style="font-family: 'Dancing Script', cursive; font-size: 3rem; color: #4a4a4a; margin-bottom: 2rem;">
+                🌟 The Magic is Complete! 🌟
+            </h2>
+            <p style="font-size: 1.3rem; color: #666; margin-bottom: 2rem;">
+                Behold the beautiful names of our magical siblings!
+            </p>
+            <div class="sibling-names" id="siblingNames">
+                <!-- Names will be generated by JavaScript -->
+            </div>
+            <p style="font-size: 1.1rem; color: #888; margin-top: 2rem;">
+                Each name represents a unique power and beautiful soul. Thank you for bringing their garden to life! 🌸✨
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        const gameState = {
+            currentGame: 0,
+            completedGames: [],
+            audioEnabled: true,
+            progressPercentage: 0
+        };
+        
+        // Sibling Data
+        const siblings = [
+            {
+                name: "Haram",
+                color: "#ff6b9d",
+                story: "Haram possesses the magical power of healing through colors. With a gentle touch and rainbow heart, she can restore life and vibrancy to anything that has lost its way. Her kindness lights up the world around her! 🌈💖",
+                petalColors: ["#ffb6c1", "#ffc0cb", "#ff69b4", "#ff1493", "#db7093", "#c71585"]
+            },
+            {
+                name: "Anaya",
+                color: "#4ecdc4",
+                story: "Anaya controls the power of knowledge and learning. She can match ideas together and help others understand difficult concepts with her brilliant mind. Her wisdom helps everyone learn and grow! 📚✨",
+                petalColors: ["#87ceeb", "#b0e0e6", "#add8e6", "#87cefa", "#4682b4", "#1e90ff"]
+            },
+            {
+                name: "Eman",
+                color: "#96ceb4",
+                story: "Eman has the incredible gift of earth shaping and nature harmony. She can move mountains with her determination and nurture growth wherever she goes. Her strength comes from her deep connection to the natural world! 🌍🌱",
+                petalColors: ["#98fb98", "#90ee90", "#8fbc8f", "#66cdaa", "#20b2aa", "#008b8b"]
+            },
+            {
+                name: "Armish",
+                color: "#feca57",
+                story: "Armish wields the power of lightning speed and quick reactions. Like a spark of energy, she can light up any moment with her enthusiasm and joy. Her quick clicks bring instant happiness to everyone around her! ⚡😊",
+                petalColors: ["#f0e68c", "#fffacd", "#ffffe0", "#fafad2", "#eee8aa", "#daa520"]
+            },
+            {
+                name: "Minahil",
+                color: "#a8e6cf",
+                story: "Minahil has the graceful power of gentle collection and peaceful gathering. She can bring together beautiful things with her caring touch and patient heart. Her calm presence brings harmony to everyone around her! 🌸🍃",
+                petalColors: ["#e6ffe6", "#ccffcc", "#b3ffb3", "#99ff99", "#80ff80", "#66ff66"]
+            },
+            {
+                name: "Zohan",
+                color: "#ff8a80",
+                story: "Zohan possesses the mighty power of magical protection and gentle strength. With his caring shield, he can create safe spaces filled with love and warmth. His kind heart and protective nature make him a true guardian friend! 🛡️💖",
+                petalColors: ["#ffa07a", "#ffb07a", "#ffc0cb", "#ffb6c1", "#ff9999", "#ff7f7f"]
+            }
+        ];
+        
+        // Audio Context for Sound Effects
+        let audioContext;
+        let isMusicPlaying = false;
+        
+        // Initialize Audio
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.log('Audio not supported');
+            }
+        }
+        
+        // Play Sound Effect
+        function playSound(frequency, duration, type = 'sine') {
+            if (!gameState.audioEnabled || !audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+        
+        // Success Sound
+        function playSuccessSound() {
+            playSound(523.25, 0.2); // C5
+            setTimeout(() => playSound(659.25, 0.2), 100); // E5
+            setTimeout(() => playSound(783.99, 0.3), 200); // G5
+        }
+        
+        // Click Sound
+        function playClickSound() {
+            playSound(440, 0.1); // A4
+        }
+        
+        // Create Particles
+        function createParticles() {
+            const container = document.getElementById('particlesContainer');
+            
+            setInterval(() => {
+                if (container.children.length < 20) {
+                    const particle = document.createElement('div');
+                    particle.className = Math.random() > 0.5 ? 'particle petal-particle' : 'particle pollen-particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                    particle.style.animationDelay = Math.random() * 2 + 's';
+                    
+                    container.appendChild(particle);
+                    
+                    setTimeout(() => {
+                        if (particle.parentNode) {
+                            particle.remove();
+                        }
+                    }, 10000);
+                }
+            }, 800);
+        }
+        
+        // Update Progress Bar
+        function updateProgress() {
+            const progress = (gameState.completedGames.length / siblings.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            gameState.progressPercentage = progress;
+        }
+        
+        // Create Garden Slots
+        function createGardenSlots() {
+            const grid = document.getElementById('gardenGrid');
+            
+            siblings.forEach((sibling, index) => {
+                const slot = document.createElement('div');
+                slot.className = 'flower-slot';
+                slot.innerHTML = `
+                    <div class="flower" id="flower-${index}">
+                        <div class="flower-bloom">
+                            ${sibling.petalColors.map(color => 
+                                `<div class="petal" style="background: linear-gradient(45deg, ${color}, ${color}dd);"></div>`
+                            ).join('')}
+                            <div class="flower-center"></div>
+                        </div>
+                        <div class="flower-stem"></div>
+                        <div class="flower-name" style="color: ${sibling.color};">${sibling.name}</div>
+                    </div>
+                `;
+                grid.appendChild(slot);
+            });
+        }
+        
+        // Bloom Flower
+        function bloomFlower(index) {
+            const flower = document.getElementById(`flower-${index}`);
+            const slot = flower.parentElement;
+            
+            slot.classList.add('bloomed');
+            flower.classList.add('bloomed');
+            
+            // Create bloom particles
+            createBloomParticles(slot);
+            
+            playSuccessSound();
+        }
+        
+        // Create Bloom Particles
+        function createBloomParticles(element) {
+            const rect = element.getBoundingClientRect();
+            const container = document.getElementById('particlesContainer');
+            
+            for (let i = 0; i < 10; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle petal-particle';
+                particle.style.position = 'fixed';
+                particle.style.left = rect.left + rect.width/2 + 'px';
+                particle.style.top = rect.top + rect.height/2 + 'px';
+                particle.style.animation = `bloomParticle 2s ease-out forwards`;
+                particle.style.animationDelay = i * 0.1 + 's';
+                
+                const angle = (i / 10) * 2 * Math.PI;
+                const distance = 100;
+                particle.style.setProperty('--end-x', Math.cos(angle) * distance + 'px');
+                particle.style.setProperty('--end-y', Math.sin(angle) * distance + 'px');
+                
+                container.appendChild(particle);
+                
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.remove();
+                    }
+                }, 2000);
+            }
+        }
+        
+        // Show Story
+        function showStory(siblingIndex) {
+            const storyDisplay = document.getElementById('storyDisplay');
+            const storyText = document.getElementById('storyText');
+            const sibling = siblings[siblingIndex];
+            
+            storyDisplay.classList.add('show');
+            
+            // Typed text effect
+            typeText(storyText, sibling.story, 50);
+        }
+        
+        // Type Text Effect
+        function typeText(element, text, speed) {
+            element.innerHTML = '';
+            let i = 0;
+            
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                } else {
+                    element.classList.add('typed-text');
+                }
+            }
+            
+            type();
+        }
+        
+        // Game Completion
+        function completeGame(gameIndex) {
+            if (!gameState.completedGames.includes(gameIndex)) {
+                gameState.completedGames.push(gameIndex);
+                bloomFlower(gameIndex);
+                updateProgress();
+                
+                setTimeout(() => {
+                    showStory(gameIndex);
+                }, 1000);
+                
+                if (gameState.completedGames.length === siblings.length) {
+                    setTimeout(() => {
+                        showFinalReveal();
+                    }, 3000);
+                }
+            }
+        }
+        
+        // Show Final Reveal
+        function showFinalReveal() {
+            const finalReveal = document.getElementById('finalReveal');
+            const siblingNames = document.getElementById('siblingNames');
+            
+            siblings.forEach((sibling, index) => {
+                const nameElement = document.createElement('div');
+                nameElement.className = 'sibling-name';
+                nameElement.style.background = `linear-gradient(45deg, ${sibling.color}, ${sibling.color}dd)`;
+                nameElement.style.animationDelay = index * 0.3 + 's';
+                nameElement.textContent = sibling.name;
+                siblingNames.appendChild(nameElement);
+            });
+            
+            finalReveal.classList.add('show');
+        }
+        
+        // Continue to Next Game
+        function continueToNextGame() {
+            const storyDisplay = document.getElementById('storyDisplay');
+            storyDisplay.classList.remove('show');
+            
+            if (gameState.completedGames.length < siblings.length) {
+                setTimeout(() => {
+                    switchToNextGame();
+                }, 500);
+            }
+        }
+        
+        // Switch to Next Game
+        function switchToNextGame() {
+            const currentGameElement = document.querySelector('.mini-game.active');
+            currentGameElement.classList.remove('active');
+            
+            // Find next incomplete game
+            let nextGameIndex = 0;
+            for (let i = 0; i < siblings.length; i++) {
+                if (!gameState.completedGames.includes(i)) {
+                    nextGameIndex = i;
+                    break;
+                }
+            }
+            
+            const nextGameElement = document.getElementById(`game-${siblings[nextGameIndex].name.toLowerCase()}`);
+            nextGameElement.classList.add('active');
+            gameState.currentGame = nextGameIndex;
+        }
+        
+        // Game 1: Haram's Color Matching
+        function initColorGame() {
+            const grid = document.getElementById('colorGrid');
+            const shapes = ['🌸', '🌺', '🌻', '🌷', '🌹', '🌼'];
+            const colors = ['#ff6b9d', '#4ecdc4', '#96ceb4', '#feca57', '#a8e6cf', '#ff8a80'];
+            
+            grid.innerHTML = '';
+            
+            shapes.forEach((shape, index) => {
+                const element = document.createElement('div');
+                element.className = 'color-shape faded';
+                element.innerHTML = shape;
+                element.style.background = colors[index];
+                element.dataset.index = index;
+                
+                element.addEventListener('click', () => {
+                    if (element.classList.contains('faded')) {
+                        element.classList.remove('faded');
+                        element.classList.add('restored');
+                        playClickSound();
+                        
+                        // Check if all are restored
+                        const fadedShapes = grid.querySelectorAll('.faded');
+                        if (fadedShapes.length === 0) {
+                            setTimeout(() => completeGame(0), 500);
+                        }
+                    }
+                });
+                
+                grid.appendChild(element);
+            });
+        }
+        
+        // Game 2: Anaya's Study Matching Game
+        function initMemoryGame() {
+            const grid = document.getElementById('memoryGrid');
+            
+            // Study-related pairs
+            const pairs = [
+                { emoji: '📚', text: 'Books' },
+                { emoji: '✏️', text: 'Pencil' },
+                { emoji: '🔢', text: 'Math' },
+                { emoji: '🧪', text: 'Science' },
+                { emoji: '🌎', text: 'Geography' },
+                { emoji: '📝', text: 'Notes' }
+            ];
+            
+            // Create pairs array
+            let cards = [];
+            pairs.forEach(pair => {
+                cards.push({ id: cards.length, content: pair.emoji, match: pair.text });
+                cards.push({ id: cards.length, content: pair.text, match: pair.emoji });
+            });
+            
+            // Shuffle cards
+            cards = shuffleArray(cards);
+            
+            grid.innerHTML = '';
+            
+            // Create cards
+            cards.forEach(card => {
+                const element = document.createElement('div');
+                element.className = 'memory-card';
+                element.dataset.id = card.id;
+                element.dataset.match = card.match;
+                
+                element.innerHTML = `
+                    <div class="memory-card-front">${card.content}</div>
+                    <div class="memory-card-back">?</div>
+                `;
+                
+                element.addEventListener('click', () => handleCardClick(element));
+                
+                grid.appendChild(element);
+            });
+            
+            let flippedCards = [];
+            let matchedPairs = 0;
+            let canFlip = true;
+            
+            function handleCardClick(card) {
+                if (!canFlip || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+                
+                playClickSound();
+                card.classList.add('flipped');
+                flippedCards.push(card);
+                
+                if (flippedCards.length === 2) {
+                    canFlip = false;
+                    
+                    const card1 = flippedCards[0];
+                    const card2 = flippedCards[1];
+                    
+                    const content1 = card1.querySelector('.memory-card-front').textContent;
+                    const match1 = card1.dataset.match;
+                    
+                    const content2 = card2.querySelector('.memory-card-front').textContent;
+                    
+                    if (content2 === match1) {
+                        // Match found
+                        setTimeout(() => {
+                            card1.classList.add('matched');
+                            card2.classList.add('matched');
+                            flippedCards = [];
+                            canFlip = true;
+                            matchedPairs++;
+                            
+                            if (matchedPairs === pairs.length) {
+                                setTimeout(() => completeGame(1), 500);
+                            }
+                        }, 500);
+                    } else {
+                        // No match
+                        setTimeout(() => {
+                            card1.classList.remove('flipped');
+                            card2.classList.remove('flipped');
+                            flippedCards = [];
+                            canFlip = true;
+                        }, 1000);
+                    }
+                }
+            }
+        }
+        
+        // Shuffle array
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+        
+        // Game 3: Eman's Drag and Drop
+        function initDragGame() {
+            const dropZones = document.getElementById('dropZones');
+            const draggableShapes = document.getElementById('draggableShapes');
+            
+            const shapes = [
+                { emoji: '⭕', color: '#ff6b9d', id: 'circle' },
+                { emoji: '🔸', color: '#4ecdc4', id: 'diamond' },
+                { emoji: '🔳', color: '#96ceb4', id: 'square' }
+            ];
+            
+            dropZones.innerHTML = '';
+            draggableShapes.innerHTML = '';
+            
+            // Create drop zones
+            shapes.forEach(shape => {
+                const zone = document.createElement('div');
+                zone.className = 'drop-zone';
+                zone.dataset.shapeId = shape.id;
+                zone.innerHTML = shape.emoji;
+                zone.style.borderColor = shape.color;
+                
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('drag-over');
+                });
+                
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('drag-over');
+                });
+                
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('drag-over');
+                    
+                    const draggedId = e.dataTransfer.getData('text/plain');
+                    if (draggedId === shape.id) {
+                        const draggedElement = document.getElementById('drag-' + draggedId);
+                        zone.appendChild(draggedElement);
+                        draggedElement.style.cursor = 'default';
+                        playClickSound();
+                        
+                        // Check completion
+                        const placedShapes = dropZones.querySelectorAll('.draggable');
+                        if (placedShapes.length === shapes.length) {
+                            setTimeout(() => completeGame(2), 500);
+                        }
+                    }
+                });
+                
+                dropZones.appendChild(zone);
+            });
+            
+            // Create draggable shapes
+            shapes.forEach(shape => {
+                const draggable = document.createElement('div');
+                draggable.className = 'draggable';
+                draggable.id = 'drag-' + shape.id;
+                draggable.draggable = true;
+                draggable.innerHTML = shape.emoji;
+                draggable.style.background = shape.color;
+                
+                draggable.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', shape.id);
+                });
+                
+                draggableShapes.appendChild(draggable);
+            });
+        }
+        
+        // Game 4: Armish's Simple Click Game (NEW EASY GAME)
+        function initClickGame() {
+            const container = document.getElementById('clickButtons');
+            const colors = ['#ff6b9d', '#4ecdc4', '#96ceb4', '#feca57'];
+            const emojis = ['⭐', '💫', '✨', '🌟'];
+            
+            container.innerHTML = '';
+            
+            let clickedCount = 0;
+            
+            colors.forEach((color, index) => {
+                const button = document.createElement('button');
+                button.className = 'click-button';
+                button.style.background = `linear-gradient(45deg, ${color}, ${color}dd)`;
+                button.innerHTML = emojis[index];
+                
+                button.addEventListener('click', () => {
+                    if (!button.classList.contains('clicked')) {
+                        button.classList.add('clicked');
+                        playClickSound();
+                        clickedCount++;
+                        
+                        if (clickedCount === colors.length) {
+                            setTimeout(() => completeGame(3), 500);
+                        }
+                    }
+                });
+                
+                container.appendChild(button);
+            });
+        }
+        
+        // Game 5: Minahil's Simple Collect Game (NEW EASY GAME)
+        function initCollectGame() {
+            const area = document.getElementById('collectArea');
+            const counter = document.getElementById('petalsCollected');
+            
+            // Clear existing petals
+            area.querySelectorAll('.floating-petal').forEach(petal => petal.remove());
+            
+            let collectedCount = 0;
+            const totalPetals = 5;
+            
+            counter.textContent = '0';
+            
+            for (let i = 0; i < totalPetals; i++) {
+                const petal = document.createElement('div');
+                petal.className = 'floating-petal';
+                petal.style.left = (20 + i * 15) + '%';
+                petal.style.top = (20 + Math.random() * 60) + '%';
+                petal.style.animationDelay = i * 0.5 + 's';
+                
+                petal.addEventListener('click', () => {
+                    if (!petal.classList.contains('collected')) {
+                        petal.classList.add('collected');
+                        playClickSound();
+                        collectedCount++;
+                        counter.textContent = collectedCount;
+                        
+                        setTimeout(() => {
+                            petal.remove();
+                        }, 500);
+                        
+                        if (collectedCount === totalPetals) {
+                            setTimeout(() => completeGame(4), 500);
+                        }
+                    }
+                });
+                
+                area.appendChild(petal);
+            }
+        }
+        
+        // Game 6: Zohan's Simple Tap Game (NEW EASY GAME)
+        function initTapGame() {
+            const area = document.getElementById('tapArea');
+            const target = document.getElementById('tapTarget');
+            const counter = document.getElementById('shieldCharges');
+            
+            let tapCount = 0;
+            const maxTaps = 5;
+            
+            counter.textContent = '0';
+            
+            area.addEventListener('click', () => {
+                if (tapCount < maxTaps) {
+                    target.classList.add('tapped');
+                    playClickSound();
+                    tapCount++;
+                    counter.textContent = tapCount;
+                    
+                    setTimeout(() => {
+                        target.classList.remove('tapped');
+                    }, 300);
+                    
+                    if (tapCount === maxTaps) {
+                        setTimeout(() => completeGame(5), 500);
+                    }
+                }
+            });
+        }
+        
+        // Initialize All Games
+        function initAllGames() {
+            initColorGame();
+            initMemoryGame();
+            initDragGame();
+            initClickGame(); // Changed from initSpeedGame
+            initCollectGame(); // Changed from initGlideGame
+            initTapGame(); // Changed from initShieldGame
+        }
+        
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            initAudio();
+            createGardenSlots();
+            createParticles();
+            initAllGames();
+            updateProgress();
+            
+            // Audio toggle
+            document.getElementById('audioToggle').addEventListener('click', () => {
+                gameState.audioEnabled = !gameState.audioEnabled;
+                const button = document.getElementById('audioToggle');
+                button.textContent = gameState.audioEnabled ? '🔊' : '🔇';
+            });
+            
+            // Continue button
+            document.getElementById('continueButton').addEventListener('click', continueToNextGame);
+            
+            // Reset buttons
+            document.getElementById('resetColors').addEventListener('click', initColorGame);
+            document.getElementById('resetMemory').addEventListener('click', initMemoryGame);
+            document.getElementById('resetClicks').addEventListener('click', initClickGame);
+            document.getElementById('resetPetals').addEventListener('click', initCollectGame);
+        });
+        
+        // Add CSS for bloom particles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes bloomParticle {
+                0% {
+                    transform: translate(0, 0) scale(1);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translate(var(--end-x), var(--end-y)) scale(0);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
